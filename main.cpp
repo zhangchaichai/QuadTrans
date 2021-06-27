@@ -42,7 +42,7 @@ int main() {
     for (auto& node : nodes){
         quadtree.add(&node);
     }
-    auto box1 = Box(550.0, 550.0, 150.0, 150.0);
+    auto box1 = Box(550.0, 400.0, 150.0, 150.0);
     Point p = Point(550.0,550.0);
     vector<Point>hull;
     hull.push_back(p);
@@ -52,13 +52,25 @@ int main() {
     hull.push_back(p);
     p = Point(550.0,400.0);
     hull.push_back(p);
-   auto values= quadtree.query(hull);
-   auto values1= quadtree.query(box1);
-   cout<< values.size() << "  " << values1.size()<<endl;
-   /*for(int i=0;i<values.size();i++){
-       cout<<values[i]->box.track_id<< " "<<values1[i]->box.track_id<< " "<<values[i]->box.frameIndex<<" "<<values1[i]->box.frameIndex<<  endl;
-   }*/
+   auto values1= quadtree.query(hull);
+   auto values= quadtree.query(box1);
+   cout<< values.size()<<endl;
+  /* int xa=0;
+   for(int j=0;j<res.size();j++){
+        if(res[j].left==571&&res[j].top==435){
+            xa++;
+        }
 
+   }
+   cout<<xa<<" !!"<<endl;*/
+   int numm=0;
+   for(int i=0;i<values.size();i++){
+       //cout<<values[i]->box.left<<" "<< values[i]->box.top <<" "<<  values[i]->box.getRight() <<" "<<values[i]->box.getBottom()<<" "<<values[i]->box.frameIndex<<endl;
+       if(values[i]->box.top<=box1.getBottom()&&values[i]->box.left>=box1.getRight()&&values[i]->box.getRight()<=box1.getRight()&&values[i]->box.getBottom()>=box1.getBottom()){
+           numm++;
+       }
+   }
+    cout<<numm<<endl;
     values= quadtree.query(hull);
     return 0;
 }

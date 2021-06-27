@@ -339,7 +339,11 @@ private:
         for (const auto& value : node->values)
         {
             if (queryBox.intersects(mGetBox(value)))
-                values.push_back(value);
+            {
+                if(queryBox.baohan(mGetBox(value)))
+                    values.push_back(value);
+            }
+
         }
         if (!isLeaf(node))
         {

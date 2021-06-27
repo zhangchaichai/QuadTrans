@@ -56,8 +56,11 @@ class Box{
         }
         bool intersects(const Box& box) const
         {
-            return !(left >= box.getRight() || getRight() <= box.left ||
-                     top >= box.getBottom() || getBottom() <= box.top);
+            return !(left > box.getRight() || getRight() < box.left ||
+                     top > box.getBottom() || getBottom() < box.top);
+        }
+        bool baohan(const Box& box) const{
+            return (box.getRight()<=getRight()&&box.left>=left&&box.top<=getBottom()&&box.getBottom()>=top);
         }
 
 };
