@@ -52,7 +52,7 @@ int main() {
     hull.push_back(p);
     p = Point(550.0,400.0);
     hull.push_back(p);
-   auto values1= quadtree.query(hull);
+  // auto values1= quadtree.query(hull);
    auto values= quadtree.query(box1);
    cout<< values.size()<<endl;
   /* int xa=0;
