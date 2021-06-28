@@ -40,7 +40,7 @@ public:
     std::vector<T> query(const Box& box) const
     {
         auto values = std::vector<T>();
-        query(mRoot.get(), mBox, box, values);
+        query(mRoot.get(), mBox, box, values );
         return values;
     }
 
@@ -50,12 +50,6 @@ public:
         return values;
     }
 
-    std::vector<std::pair<T, T>> findAllIntersections() const
-    {
-        auto intersections = std::vector<std::pair<T, T>>();
-        findAllIntersections(mRoot.get(), intersections);
-        return intersections;
-    }
     double dcmp(double x) const{
         if(fabs(x) < eps) return 0;
         else return x < 0 ? -1 : 1;
@@ -126,11 +120,11 @@ public:
         vector<Point> ch2;
         Point point = Point(box.left,box.top);
         ch2.push_back(point);
-        point = Point(box.left,box.top-box.height);
+        point = Point(box.left,box.top+box.height);
+        ch2.push_back(point);
+        point = Point(box.left+box.width,box.top+box.height);
         ch2.push_back(point);
         point = Point(box.left+box.width,box.top);
-        ch2.push_back(point);
-        point = Point(box.left+box.width,box.top-box.height);
         ch2.push_back(point);
         ch2=ConvexHull(ch2);
         int c1 = ch1.size();
@@ -370,7 +364,7 @@ private:
        // cout<< point.y<<endl;
         box1.push_back(point);
        // cout<< queryPull[2].y << endl;
-        assert(ConvexPolygonDisjoint(ConvexHull(queryPull),ConvexHull(box1)));
+//        assert(ConvexPolygonDisjoint(ConvexHull(queryPull),ConvexHull(box1)));
         for (const auto& value : node->values)
         {
             if(ConvexPolygonDisjoint(ConvexHull(queryPull),mGetBox(value))){
@@ -385,11 +379,11 @@ private:
                 vector<Point> childBox1;
                 Point point = Point(childBox.left,childBox.top);
                 childBox1.push_back(point);
-                point = Point(childBox.left,childBox.top-childBox.height);
+                point = Point(childBox.left,childBox.top+childBox.height);
                 childBox1.push_back(point);
                 point = Point(childBox.left+childBox.width,childBox.top);
                 childBox1.push_back(point);
-                point = Point(childBox.left+childBox.width,childBox.top-childBox.height);
+                point = Point(childBox.left+childBox.width,childBox.top+childBox.height);
                 childBox1.push_back(point);
                 if (ConvexPolygonDisjoint(ConvexHull(queryPull),ConvexHull(childBox1)))
                     query(node->children[i].get(), childBox, queryPull, values);

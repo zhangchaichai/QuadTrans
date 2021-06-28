@@ -64,13 +64,29 @@ int main() {
    }
    cout<<xa<<" !!"<<endl;*/
    int numm=0;
-   for(int i=0;i<values.size();i++){
-       //cout<<values[i]->box.left<<" "<< values[i]->box.top <<" "<<  values[i]->box.getRight() <<" "<<values[i]->box.getBottom()<<" "<<values[i]->box.frameIndex<<endl;
-       if(values[i]->box.top<=box1.getBottom()&&values[i]->box.left>=box1.getRight()&&values[i]->box.getRight()<=box1.getRight()&&values[i]->box.getBottom()>=box1.getBottom()){
-           numm++;
-       }
-   }
-    cout<<numm<<endl;
-    values= quadtree.query(hull);
+   /*for(int i=0;i<values.size();i++){
+       //cout<<values[i]->box.left<<" "<< values[i]->box.top <<" "<<  values[i]->box.getRight() <<" "<<values[i]->box.getBottom()<<" "<<values[i]->box.frameIndex << values[i]->box.track_id<endl;
+   }*/
+   // cout<<numm<<endl;
+    auto values1= quadtree.query(hull);
+    cout<<values1.size()<<endl;
+
+
+    unordered_map<int,int> track;
+    for(int i=0;i<values1.size();i++){
+        track[values1[i]->box.track_id]=1;
+    }
+    for(int i=0;i<values.size();i++){
+        track[values[i]->box.track_id]++;
+    }
+    int track_num=0;
+    for(auto it=track.begin();it!=track.end();it++){
+        if(it->second>=2)
+        {
+            cout<<it->first<<endl;
+            track_num++;
+        }
+    }
+    cout<<track_num<<endl;
     return 0;
 }
