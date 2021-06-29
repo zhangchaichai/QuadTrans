@@ -67,12 +67,12 @@ int main() {
     hull_C.push_back(p);
     p = Point(1920.0,630.0);
     hull_C.push_back(p);
-    auto values= quadtree.query(hull_A);
     clock_t startTime,endTime;
     startTime = clock();
+    auto values= quadtree.query(hull_A);
+
     auto values1= quadtree.query(hull_C);
     endTime = clock();
-    cout << "The run time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
     unordered_map<int,int> track;
     unordered_map<int,int> track_time;
     for(int i=0;i<values.size();i++){
@@ -81,7 +81,7 @@ int main() {
         track_time[values[i]->box.track_id]=values[i]->box.frameIndex;
         track[values[i]->box.track_id]=1;
     }
-    cout<< " A路口： " <<track.size() << " " << track_time.size()<<endl;
+   // cout<< " A路口： " <<track.size() << " " << track_time.size()<<endl;
     unordered_map<int,int> track1;
     unordered_map<int,int> track_time1;
     for(int i=0;i<values1.size();i++){
@@ -89,7 +89,7 @@ int main() {
         track_time1[values1[i]->box.track_id]=values1[i]->box.frameIndex;
         track1[values1[i]->box.track_id]=1;
     }
-    cout<< " B路口： " <<track1.size()<<"  " << track_time1.size()<<endl;
+  //  cout<< " B路口： " <<track1.size()<<"  " << track_time1.size()<<endl;
     vector<int> track_A_C;
     vector<int> track_C_A;
     for(auto it=track1.begin();it!=track1.end();it++){
@@ -102,13 +102,14 @@ int main() {
             }
         }
     }
+    cout << "The 转弯 time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
     cout<<"A C 的数量："<<track_A_C.size()<<endl;
     for(int i=0;i<track_A_C.size();i++){
-        cout<<" A - C "<< track_A_C[i]<<endl;
+       // cout<<" A - C "<< track_A_C[i]<<endl;
     }
     cout<<"C A 的数量："<<track_C_A.size()<<endl;
     for(int i=0;i<track_C_A.size();i++){
-        cout<<" C - A "<< track_C_A[i]<<endl;
+      //  cout<<" C - A "<< track_C_A[i]<<endl;
     }
 
     // 查询指定区域内停留的车辆
@@ -129,7 +130,7 @@ int main() {
         track_stay[values_stay[i]->box.track_id]++;
     }
     for(auto it=track_stay.begin();it!=track_stay.end();it++){
-        cout<<it->first<<" 出现了几次 ： "<<track_stay[it->first]<<endl;
+        //cout<<it->first<<" 出现了几次 ： "<<track_stay[it->first]<<endl;
     }
 
     //方法二： 进入和离开这个区域的时间帧
@@ -143,11 +144,11 @@ int main() {
         track_stay_ed[values_stay[i]->box.track_id]=max(track_stay_ed[values_stay[i]->box.track_id],values_stay[i]->box.frameIndex);
     }
     for(auto it=track_stay.begin();it!=track_stay.end();it++){
-        cout<<it->first<<" 时间差 ："<<track_stay_ed[it->first]-track_stay_st[it->first]<<endl;
+        //cout<<it->first<<" 时间差 ："<<track_stay_ed[it->first]-track_stay_st[it->first]<<endl;
     }
 
     // 查询闯红灯的车辆
-
+    startTime = clock();
     //通行区
     vector<Point>hull_Red_Y;
     p = Point(0.0,0.0);
@@ -196,5 +197,7 @@ int main() {
         }
     }
 
+    endTime = clock();
+    cout << "The 闯红灯 time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
     return 0;
 }
