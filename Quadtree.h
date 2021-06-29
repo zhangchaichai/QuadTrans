@@ -14,6 +14,7 @@
 #include<cmath>
 #include<algorithm>
 #include "Point.h"
+#include "B+ tree.h"
 #include <vector>
 const double eps = 1e-10;
 template<typename T,typename GetBox, typename Equal = std::equal_to<T>>
@@ -48,6 +49,20 @@ public:
         auto values = std::vector<T>();
         query(mRoot.get(), mBox, hull, values);
         return values;
+    }
+
+    void  bianli()
+    {
+        int anss=0;
+        vector<int>vec;
+        query1(mRoot.get(),anss,vec);
+        cout<<anss<<" anss "<<endl;
+        cout<<vec.size()<<endl;
+        sort(vec.begin(),vec.end());
+        for(int i=anss-1;i>=anss-2000;i--){
+            cout<<vec[i]<<" ";
+        }
+        cout<<endl;
     }
 
     std::vector<T> query_time(vector<Point> hull,int st,int ed) const{
@@ -153,6 +168,7 @@ private:
     {
         std::array<std::unique_ptr<Node>, 4> children;
         std::vector<T> values;
+        BPTree* bPTree = new BPTree(50, 50);
     };
     Box mBox;
     std::unique_ptr<Node> mRoot;
@@ -229,8 +245,12 @@ private:
         if (isLeaf(node))
         {
             // Insert the value in this node if possible
-            if (depth >= MaxDepth || node->values.size() < Threshold)
+            if (depth >= MaxDepth || node->values.size() < Threshold){
+                Box box = mGetBox(value);
+                Leaf leaf(box.left,box.top,box.width,box.height,box.track_id,box.frameIndex);
+                node->bPTree->insert(box.frameIndex,leaf);
                 node->values.push_back(value);
+            }
                 // Otherwise, we split and we try again
             else
             {
@@ -245,8 +265,13 @@ private:
             if (i != -1)
                 add(node->children[static_cast<std::size_t>(i)].get(), depth + 1, computeBox(box, i), value);
                 // Otherwise, we add the value in the current node
-            else
+            else{
                 node->values.push_back(value);
+                Box box = mGetBox(value);
+                Leaf leaf(box.left,box.top,box.width,box.height,box.track_id,box.frameIndex);
+                node->bPTree->insert(box.frameIndex,leaf);
+            }
+
         }
     }
 
@@ -259,78 +284,34 @@ private:
             child = std::make_unique<Node>();
         // Assign values to children
         auto newValues = std::vector<T>(); // New values for this node
+
         for (const auto& value : node->values)
         {
             auto i = getQuadrant(box, mGetBox(value));
-            if (i != -1)
+            if (i != -1){
                 node->children[static_cast<std::size_t>(i)]->values.push_back(value);
-            else
+                Box box = mGetBox(value);
+                Leaf leaf(box.left,box.top,box.width,box.height,box.track_id,box.frameIndex);
+                node->children[static_cast<std::size_t>(i)]->bPTree->insert(box.frameIndex,leaf);
+            }
+            else{
                 newValues.push_back(value);
+            }
         }
         node->values = std::move(newValues);
+        node->bPTree = nullptr;
     }
 
-    void remove(Node* node, Node* parent, const Box& box, const T& value)
-    {
-        assert(node != nullptr);
-        assert(box.contains(mGetBox(value)));
-        if (isLeaf(node))
-        {
-            // Remove the value from node
-            removeValue(node, value);
-            // Try to merge the parent
-            if (parent != nullptr)
-                tryMerge(parent);
-        }
-        else
-        {
-            // Remove the value in a child if the value is entirely contained in it
-            auto i = getQuadrant(box, mGetBox(value));
-            if (i != -1)
-                remove(node->children[static_cast<std::size_t>(i)].get(), node, computeBox(box, i), value);
-                // Otherwise, we remove the value from the current node
-            else
-                removeValue(node, value);
+     void query1(Node* node,int &ans,vector<int> &vec){
+        if(!isLeaf(node)){
+            for (auto i = std::size_t(0); i < node->children.size(); ++i)
+                query1(node->children[i].get(),ans,vec);
+        }else{
+            ans++;
+            //node->bPTree->display(node->bPTree->getRoot());
+            vec.push_back(node->values.size());
         }
     }
-
-    void removeValue(Node* node, const T& value)
-    {
-        // Find the value in node->values
-        auto it = std::find_if(std::begin(node->values), std::end(node->values),
-                               [this, &value](const auto& rhs){ return mEqual(value, rhs); });
-        assert(it != std::end(node->values) && "Trying to remove a value that is not present in the node");
-        // Swap with the last element and pop back
-        *it = std::move(node->values.back());
-        node->values.pop_back();
-    }
-
-    void tryMerge(Node* node)
-    {
-        assert(node != nullptr);
-        assert(!isLeaf(node) && "Only interior nodes can be merged");
-        auto nbValues = node->values.size();
-        for (const auto& child : node->children)
-        {
-            if (!isLeaf(child.get()))
-                return;
-            nbValues += child->values.size();
-        }
-        if (nbValues <= Threshold)
-        {
-            node->values.reserve(nbValues);
-            // Merge the values of all the children
-            for (const auto& child : node->children)
-            {
-                for (const auto& value : child->values)
-                    node->values.push_back(value);
-            }
-            // Remove the children
-            for (auto& child : node->children)
-                child.reset();
-        }
-    }
-
     void query(Node* node, const Box& box, const Box& queryBox, std::vector<T>& values) const
     {
         assert(node != nullptr);
