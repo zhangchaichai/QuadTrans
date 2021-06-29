@@ -33,6 +33,7 @@ int main() {
         node.box.frameIndex = res[i].frameIndex;
         nodes.push_back(node);
         max_left=max(max_left,res[i].left);
+
     }
     auto box = Box(0.0, 0.0, 2048.0, 2048.0);
     auto getBox = [](Node* node)
@@ -162,9 +163,9 @@ int main() {
 
     unordered_map<int,int> track_red_y;
     int st,ed;
-    st=1;ed=3;
+    st=6291;ed=7321;
     auto values_Red_Y= quadtree.query_time(hull_Red_Y,st,ed);
-    cout<<values_Red_Y.size()<<endl;
+    //cout<<values_Red_Y.size()<<endl;
 
     for(int i=0;i<values_Red_Y.size();i++){
         track_red_y[values_Red_Y[i]->box.track_id]=max(track_red_y[values_Red_Y[i]->box.track_id],values_Red_Y[i]->box.frameIndex);
@@ -180,7 +181,7 @@ int main() {
     p = Point(1200.0,420.0);
     hull_Red_N.push_back(p);
     unordered_map<int,int> track_red_n;
-    auto values_Red_N= quadtree.query_time(hull_Red_Y,st,ed);
+    auto values_Red_N= quadtree.query_time(hull_Red_N,st,ed);
     cout<<values_Red_N.size()<<endl;
 
     for(int i=0;i<values_Red_N.size();i++){
@@ -189,7 +190,11 @@ int main() {
         else
             track_red_n[values_Red_N[i]->box.track_id]=values_Red_N[i]->box.frameIndex;
     }
-
+    for(auto it=track_red_n.begin();it!=track_red_n.end();it++){
+        if(it->second<=ed&&it->second>=st&&track_red_y[it->first]<=ed&&track_red_y[it->first]>=st&&it->second>track_red_y[it->first]){
+            cout<<it->first<<" 闯红灯"<<endl;
+        }
+    }
 
     return 0;
 }

@@ -446,7 +446,7 @@ private:
         if(!tag){
             res_st=l;
         }
-        for(int i=res_st;i<res_ed;i++){
+        for(int i=res_st;i<=res_ed;i++){
             Box box = mGetBox(node->values[i]);
             Point p = Point(box.left,box.top);
             if(IsPointInPolygon(p,queryPull)){
