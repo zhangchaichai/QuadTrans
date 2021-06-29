@@ -50,6 +50,12 @@ public:
         return values;
     }
 
+    std::vector<T> query_time(vector<Point> hull,int st,int ed) const{
+        auto values = std::vector<T>();
+        query(mRoot.get(), mBox, hull, values, st , ed);
+        return values;
+    }
+
     double dcmp(double x) const{
         if(fabs(x) < eps) return 0;
         else return x < 0 ? -1 : 1;
@@ -92,15 +98,14 @@ public:
         for(int i=0; i<n; ++i) {
             const Point& p1 = poly[i];
             const Point& p2 = poly[(i+1)%n];
-            if(p1 == p || p2 == p || OnSegment(p, p1, p2)) return -1;//在边界上
+            if(p1 == p || p2 == p || OnSegment(p, p1, p2)) return 2;//在边界上
             int k = dcmp(Cross(p2-p1, p-p1));
             int d1 = dcmp(p1.y - p.y);
             int d2 = dcmp(p2.y - p.y);
             if(k > 0 && d1 <= 0 && d2 > 0) wn++;
             if(k < 0 && d2 <= 0 && d1 > 0) wn--;
         }
-        if(wn != 0) return 1;
-        return 0;
+        return wn!=0;
     }
     //判断2个凸包是否相交
     bool ConvexPolygonDisjoint(const vector<Point> ch1, const vector<Point> ch2) const{
@@ -141,7 +146,7 @@ public:
 
 private:
 ///阈值
-    static constexpr auto Threshold = std::size_t(10);
+    static constexpr auto Threshold = std::size_t(3);
 ///最大深度
     static constexpr auto MaxDepth = std::size_t(11);
     struct Node
@@ -353,6 +358,7 @@ private:
 
     void query(Node* node, const Box& box, vector<Point>& queryPull, std::vector<T>& values) const{
         assert(node != nullptr);
+
         vector<Point> box1;
         Point point = Point(box.left,box.top);
         box1.push_back(point);
@@ -367,8 +373,10 @@ private:
 //        assert(ConvexPolygonDisjoint(ConvexHull(queryPull),ConvexHull(box1)));
         for (const auto& value : node->values)
         {
-            if(ConvexPolygonDisjoint(ConvexHull(queryPull),mGetBox(value))){
-                values.push_back(value);
+            Box box = mGetBox(value);
+            Point p = Point(box.left,box.top);
+            if(IsPointInPolygon(p,queryPull)){
+                    values.push_back(value);
             }
         }
         if (!isLeaf(node))
@@ -387,6 +395,80 @@ private:
                 childBox1.push_back(point);
                 if (ConvexPolygonDisjoint(ConvexHull(queryPull),ConvexHull(childBox1)))
                     query(node->children[i].get(), childBox, queryPull, values);
+            }
+        }
+    }
+
+    void query(Node* node, const Box& box, vector<Point>& queryPull, std::vector<T>& values ,int st ,int ed) const{
+        assert(node != nullptr);
+
+        vector<Point> box1;
+        Point point = Point(box.left,box.top);
+        box1.push_back(point);
+        point = Point(box.left,box.top-box.height);
+        box1.push_back(point);
+        point = Point(box.left+box.width,box.top);
+        box1.push_back(point);
+        point = Point(box.left+box.width,box.top-box.height);
+        // cout<< point.y<<endl;
+        box1.push_back(point);
+        // cout<< queryPull[2].y << endl;
+//        assert(ConvexPolygonDisjoint(ConvexHull(queryPull),ConvexHull(box1)));
+        int res_st=-1,res_ed=-1;
+        int l=0,r=node->values.size()-1;
+        while(l<=r){
+            int mid=l+((r-l)>>1);
+            int res_time=node->values[mid]->box.frameIndex;
+            if(res_time>=ed){
+                r=mid-1;
+            }else{
+                l=mid+1;
+            }
+        }
+        if(!(r<0||r==node->values.size()-1)){
+            res_ed=r;
+        }
+        l=0,r=node->values.size();
+        int tag=0;
+        while(l<r){
+            int mid=l+((r-l)>>1);
+            int res_time=node->values[mid]->box.frameIndex;
+            if(res_time < st)
+                l=mid+1;
+            else if(res_time > st)
+                r=mid;
+            else{
+                res_st=mid;
+                tag=1;
+                break;
+            }
+        }
+        if(!tag){
+            res_st=l;
+        }
+        for(int i=res_st;i<res_ed;i++){
+            Box box = mGetBox(node->values[i]);
+            Point p = Point(box.left,box.top);
+            if(IsPointInPolygon(p,queryPull)){
+                values.push_back(node->values[i]);
+            }
+        }
+        if (!isLeaf(node))
+        {
+            for (auto i = std::size_t(0); i < node->children.size(); ++i)
+            {
+                auto childBox = computeBox(box, static_cast<int>(i));
+                vector<Point> childBox1;
+                Point point = Point(childBox.left,childBox.top);
+                childBox1.push_back(point);
+                point = Point(childBox.left,childBox.top+childBox.height);
+                childBox1.push_back(point);
+                point = Point(childBox.left+childBox.width,childBox.top);
+                childBox1.push_back(point);
+                point = Point(childBox.left+childBox.width,childBox.top+childBox.height);
+                childBox1.push_back(point);
+                if (ConvexPolygonDisjoint(ConvexHull(queryPull),ConvexHull(childBox1)))
+                    query(node->children[i].get(), childBox, queryPull, values,st,ed);
             }
         }
     }
