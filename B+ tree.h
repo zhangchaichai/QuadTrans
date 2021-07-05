@@ -21,7 +21,7 @@ public:
     }
     friend class BPTree;
 };
-class Node {
+class BNode {
     /*
 		Generally size of the this node should be equal to the block size. Which will limit the number of disk access and increase the accesssing time.
 		Intermediate nodes only hold the Tree pointers which is of considerably small size(so they can hold more Tree pointers) and only Leaf nodes hold
@@ -33,9 +33,9 @@ public:
     bool isLeaf;
     vector<int> keys;
     //Node* ptr2parent; //Pointer to go to parent node CANNOT USE check https://stackoverflow.com/questions/57831014/why-we-are-not-saving-the-parent-pointer-in-b-tree-for-easy-upward-traversal-in
-    Node* ptr2next;              //Pointer to connect next node for leaf nodes
+    BNode* ptr2next;              //Pointer to connect next node for leaf nodes
     union ptr {                  //to make memory efficient Node
-        vector<Node*> ptr2Tree;  //Array of pointers to Children sub-trees for intermediate Nodes
+        vector<BNode*> ptr2Tree;  //Array of pointers to Children sub-trees for intermediate Nodes
         vector<Leaf> dataPtr;   // Data-Pointer for the leaf node
 
         ptr();   // To remove the error !?
@@ -44,7 +44,7 @@ public:
 
     friend class BPTree;  // to access private members of the Node and hold the encapsulation concept
 public:
-    Node();
+    BNode();
 };
 class BPTree {
     /*
@@ -59,21 +59,22 @@ class BPTree {
 private:
     int maxIntChildLimit;                                   //Limiting  #of children for internal Nodes!
     int maxLeafNodeLimit;                                   // Limiting #of nodes for leaf Nodes!!!
-    Node* root;                                             //Pointer to the B+ Tree root
-    void insertInternal(int x, Node** cursor, Node** child);  //Insert x from child in cursor(parent)
-    Node** findParent(Node* cursor, Node* child);
-    Node* firstLeftNode(Node* cursor);
+    BNode* root;                                             //Pointer to the B+ Tree root
+    void insertInternal(int x, BNode** cursor, BNode** child);  //Insert x from child in cursor(parent)
+    BNode** findParent(BNode* cursor, BNode* child);
+    BNode* firstLeftNode(BNode* cursor);
 
 public:
     BPTree();
     BPTree(int degreeInternal, int degreeLeaf);
-    Node* getRoot();
+    BNode* getRoot();
     int getMaxIntChildLimit();
     int getMaxLeafNodeLimit();
-    void setRoot(Node *);
-    void display(Node* cursor);
-    void seqDisplay(Node* cursor);
+    void setRoot(BNode *);
+    void display(BNode* cursor);
+    void seqDisplay(BNode* cursor);
     void search(int key);
+    BNode* search_key(int key);
     void insert(int key, Leaf filePtr);
 };
 #endif //QUADTRANS_B_TREE_H

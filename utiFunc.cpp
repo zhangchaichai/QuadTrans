@@ -5,15 +5,15 @@
 #include <iostream>
 #include "B+ tree.h"
 
-Node* parent = NULL;
+BNode* parent = NULL;
 
-Node::ptr::ptr() {
+BNode::ptr::ptr() {
 }
 
-Node::ptr::~ptr() {
+BNode::ptr::~ptr() {
 }
 
-Node::Node() {
+BNode::BNode() {
     this->isLeaf = false;
     this->ptr2next = NULL;
 }
@@ -51,15 +51,15 @@ int BPTree::getMaxLeafNodeLimit() {
     return maxLeafNodeLimit;
 }
 
-Node* BPTree::getRoot() {
+BNode* BPTree::getRoot() {
     return this->root;
 }
 
-void BPTree::setRoot(Node *ptr) {
+void BPTree::setRoot(BNode *ptr) {
     this->root = ptr;
 }
 
-Node* BPTree::firstLeftNode(Node* cursor) {
+BNode* BPTree::firstLeftNode(BNode* cursor) {
     if (cursor->isLeaf)
         return cursor;
     for (int i = 0; i < cursor->ptr2TreeOrData.ptr2Tree.size(); i++)
@@ -69,7 +69,7 @@ Node* BPTree::firstLeftNode(Node* cursor) {
     return NULL;
 }
 
-Node** BPTree::findParent(Node* cursor, Node* child) {
+BNode** BPTree::findParent(BNode* cursor, BNode* child) {
     /*
 		Finds parent using depth first traversal and ignores leaf nodes as they cannot be parents
 		also ignores second last level because we will never find parent of a leaf node during insertion using this function
@@ -84,7 +84,7 @@ Node** BPTree::findParent(Node* cursor, Node* child) {
         } else {
             //Commenting To Remove vector out of bound Error:
             //new (&cursor->ptr2TreeOrData.ptr2Tree) std::vector<Node*>;
-            Node* tmpCursor = cursor->ptr2TreeOrData.ptr2Tree[i];
+            BNode* tmpCursor = cursor->ptr2TreeOrData.ptr2Tree[i];
             findParent(tmpCursor, child);
         }
     }

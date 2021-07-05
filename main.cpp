@@ -6,6 +6,7 @@
 #include "Quadtree.h"
 
 using namespace std;
+
 struct Nodes
 {
     Box box;
@@ -55,6 +56,30 @@ bool cmp(node a,node b)//极角排序
     else
         return m>0?true:false;*/
 }
+
+double dcmp(double x) {
+    if(fabs(x) < eps) return 0;
+    else return x < 0 ? -1 : 1;
+}
+bool OnSegment(const Point& p, const Point& a1, const Point& a2) {
+    return dcmp(Cross(a1-p, a2-p)) == 0 && dcmp(Dot(a1-p, a2-p)) < 0;
+}
+//点是否在凸包内
+int IsPointInPolygon(const Point& p, const vector<Point>& poly) {
+    int wn = 0;
+    int n = poly.size();
+    for(int i=0; i<n; ++i) {
+        const Point& p1 = poly[i];
+        const Point& p2 = poly[(i+1)%n];
+        if(p1 == p || p2 == p || OnSegment(p, p1, p2)) return 2;//在边界上
+        int k = dcmp(Cross(p2-p1, p-p1));
+        int d1 = dcmp(p1.y - p.y);
+        int d2 = dcmp(p2.y - p.y);
+        if(k > 0 && d1 <= 0 && d2 > 0) wn++;
+        if(k < 0 && d2 <= 0 && d1 > 0) wn--;
+    }
+    return wn!=0;
+}
 int maxChildInt = 4, maxNodeLeaf = 3;
 int main() {
     // read json from disk, parse it and store into unorderedmap
@@ -72,6 +97,7 @@ int main() {
     int max_frame = -1;
     int maxxx= -1;
     int ressss=0;
+    int sum_A=0;
     for(int i=0;i<vec_len;i++){
         Nodes node;
         node.box.left = (res[i].left+res[i].right)/2;
@@ -133,7 +159,6 @@ cout<<" 1帧 几辆车 " << maxxx <<endl;
     hull_C.push_back(p);
     startTime = clock();
     auto values= quadtree.query(hull_A);
-
     auto values1= quadtree.query(hull_C);
     endTime = clock();
     unordered_map<int,int> track;
@@ -271,11 +296,26 @@ cout<<" 1帧 几辆车 " << maxxx <<endl;
     int st,ed;
     st=6291;ed=7321;
     auto values_Red_Y= quadtree.query_time(hull_Red_Y,st,ed);
-    //cout<<values_Red_Y.size()<<endl;
+    vector<Leaf> values_Red_Y_B;
+    values_Red_Y_B = quadtree.query_time_B(hull_Red_Y,st,ed);
 
+    int sum_B=0;
+    for(int i=0;i<res.size();i++){
+        int left = (res[i].left+res[i].right)/2;
+        int top = (res[i].top+res[i].bottom)/2;
+        if(IsPointInPolygon(Point(left,top),hull_Red_Y)&&res[i].frameIndex<=ed&&res[i].frameIndex>=st){
+            sum_B++;
+        }
+    }
+
+    cout<<values_Red_Y.size()<<" "<< values_Red_Y_B.size() << " " <<sum_B<<endl;
     for(int i=0;i<values_Red_Y.size();i++){
         track_red_y[values_Red_Y[i]->box.track_id]=max(track_red_y[values_Red_Y[i]->box.track_id],values_Red_Y[i]->box.frameIndex);
     }
+
+   /*for(int i=0;i<values_Red_Y_B.size();i++){
+        track_red_y[values_Red_Y_B[i].track_id]=max(track_red_y[values_Red_Y_B[i].track_id],values_Red_Y_B[i].frameIndex);
+    }*/
 
     vector<Point>hull_Red_N;
     p = Point(550.0,525.0);

@@ -19,7 +19,7 @@ void BPTree::insert(int key, Leaf filePtr) {  //in Leaf Node
 		value into the parent node.
 	*/
     if (root == NULL) {
-        root = new Node;
+        root = new BNode;
         root->isLeaf = true;
         root->keys.push_back(key);
         new (&root->ptr2TreeOrData.dataPtr) std::vector<Leaf>;
@@ -29,8 +29,8 @@ void BPTree::insert(int key, Leaf filePtr) {  //in Leaf Node
         // cout << key << ": I AM ROOT!!" << endl;
         return;
     } else {
-        Node* cursor = root;
-        Node* parent = NULL;
+        BNode* cursor = root;
+        BNode* parent = NULL;
         //searching for the possible position for the given key by doing the same procedure we did in search
         while (cursor->isLeaf == false) {
             parent = cursor;
@@ -86,13 +86,13 @@ void BPTree::insert(int key, Leaf filePtr) {  //in Leaf Node
 				BAZINGA! I have the power to create new Leaf :)
 			*/
 
-            Node* newLeaf = new Node;
+            BNode* newLeaf = new BNode;
             newLeaf->isLeaf = true;
             new (&newLeaf->ptr2TreeOrData.dataPtr) std::vector<Leaf>;
             //// now, newLeaf->ptr2TreeOrData.ptr2Tree is the active member of the union
 
             //swapping the next ptr
-            Node* temp = cursor->ptr2next;
+            BNode* temp = cursor->ptr2next;
             cursor->ptr2next = newLeaf;
             newLeaf->ptr2next = temp;
 
@@ -115,9 +115,9 @@ void BPTree::insert(int key, Leaf filePtr) {  //in Leaf Node
 					If cursor is root node we create new node
 				*/
 
-                Node* newRoot = new Node;
+                BNode* newRoot = new BNode;
                 newRoot->keys.push_back(newLeaf->keys[0]);
-                new (&newRoot->ptr2TreeOrData.ptr2Tree) std::vector<Node*>;
+                new (&newRoot->ptr2TreeOrData.ptr2Tree) std::vector<BNode*>;
                 newRoot->ptr2TreeOrData.ptr2Tree.push_back(cursor);
                 newRoot->ptr2TreeOrData.ptr2Tree.push_back(newLeaf);
                 root = newRoot;
@@ -130,7 +130,7 @@ void BPTree::insert(int key, Leaf filePtr) {  //in Leaf Node
     }
 }
 
-void BPTree::insertInternal(int x, Node** cursor, Node** child) {  //in Internal Nodes
+void BPTree::insertInternal(int x, BNode** cursor, BNode** child) {  //in Internal Nodes
     if ((*cursor)->keys.size() < maxIntChildLimit - 1) {
         /*
 			If cursor is not full find the position for the new key.
@@ -161,7 +161,7 @@ void BPTree::insertInternal(int x, Node** cursor, Node** child) {  //in Internal
         //  cout << "Overflow in internal:( HAIYAA! splitting internal nodes" << endl;
 
         vector<int> virtualKeyNode((*cursor)->keys);
-        vector<Node*> virtualTreePtrNode((*cursor)->ptr2TreeOrData.ptr2Tree);
+        vector<BNode*> virtualTreePtrNode((*cursor)->ptr2TreeOrData.ptr2Tree);
 
         int i = std::upper_bound((*cursor)->keys.begin(), (*cursor)->keys.end(), x) - (*cursor)->keys.begin();  //finding the position for x
         virtualKeyNode.push_back(x);                                                                   // to create space
@@ -196,8 +196,8 @@ void BPTree::insertInternal(int x, Node** cursor, Node** child) {  //in Internal
             (*cursor)->ptr2TreeOrData.ptr2Tree[i] = virtualTreePtrNode[i];
         }
 
-        Node* newInternalNode = new Node;
-        new (&newInternalNode->ptr2TreeOrData.ptr2Tree) std::vector<Node*>;
+        BNode* newInternalNode = new BNode;
+        new (&newInternalNode->ptr2TreeOrData.ptr2Tree) std::vector<BNode*>;
         //Pushing new keys & TreePtr to NewNode
 
         for (int i = partitionIdx + 1; i < virtualKeyNode.size(); i++) {
@@ -212,9 +212,9 @@ void BPTree::insertInternal(int x, Node** cursor, Node** child) {  //in Internal
             /*
 				If cursor is a root we create a new Node
 			*/
-            Node* newRoot = new Node;
+            BNode* newRoot = new BNode;
             newRoot->keys.push_back(partitionKey);
-            new (&newRoot->ptr2TreeOrData.ptr2Tree) std::vector<Node*>;
+            new (&newRoot->ptr2TreeOrData.ptr2Tree) std::vector<BNode*>;
             newRoot->ptr2TreeOrData.ptr2Tree.push_back(*cursor);
             //// now, newRoot->ptr2TreeOrData.ptr2Tree is the active member of the union
             newRoot->ptr2TreeOrData.ptr2Tree.push_back(newInternalNode);

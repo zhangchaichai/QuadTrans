@@ -6,7 +6,7 @@
 #include "B+ tree.h"
 
 
-void BPTree::display(Node* cursor) {
+void BPTree::display(BNode* cursor) {
     /*
 		Depth First Display
 
@@ -25,13 +25,13 @@ void BPTree::display(Node* cursor) {
         Level Order Display
     */
     if (cursor == NULL) return;
-    queue<Node*> q;
+    queue<BNode*> q;
     q.push(cursor);
 
     while (!q.empty()) {
         int sz = q.size();
         for (int i = 0; i < sz; i++) {
-            Node* u = q.front(); q.pop();
+            BNode* u = q.front(); q.pop();
 
             //printing keys in self
             for (int val : u->keys)
@@ -40,7 +40,7 @@ void BPTree::display(Node* cursor) {
             cout << "|| ";//to seperate next adjacent nodes
 
             if (u->isLeaf != true) {
-                for (Node* v : u->ptr2TreeOrData.ptr2Tree) {
+                for (BNode* v : u->ptr2TreeOrData.ptr2Tree) {
                     q.push(v);
                 }
             }
@@ -49,8 +49,8 @@ void BPTree::display(Node* cursor) {
     }
 }
 
-void BPTree::seqDisplay(Node* cursor) {
-    Node* firstLeft = firstLeftNode(cursor);
+void BPTree::seqDisplay(BNode* cursor) {
+    BNode* firstLeft = firstLeftNode(cursor);
 
     if (firstLeft == NULL) {
         cout << "No Data in the Database yet!" << endl;

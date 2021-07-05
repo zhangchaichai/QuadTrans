@@ -10,7 +10,7 @@ void BPTree::search(int key) {
         cout << "NO Tuples Inserted yet" << endl;
         return;
     } else {
-        Node* cursor = root;
+        BNode* cursor = root;
 
         while (cursor->isLeaf == false) {
             /*
@@ -31,3 +31,21 @@ void BPTree::search(int key) {
     }
 }
 
+BNode* BPTree::search_key(int key) {
+    if (root == NULL) {
+        return nullptr;
+    } else {
+        BNode* cursor = root;
+
+        while (cursor->isLeaf == false) {
+            /*
+				upper_bound returns an iterator pointing to the first element in the range
+				[first,last) which has a value greater than �val�.(Because we are storing the
+				same value in the right node;(STL is doing Binary search at back end)
+			*/
+            int idx = std::upper_bound(cursor->keys.begin(), cursor->keys.end(), key) - cursor->keys.begin();
+            cursor = cursor->ptr2TreeOrData.ptr2Tree[idx];  //upper_bound takes care of all the edge cases
+        }
+        return cursor;
+    }
+}
