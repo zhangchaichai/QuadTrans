@@ -412,13 +412,13 @@ private:
 
                 }else{
                     for(int i=idx;i<idy;i++)
-                        if(STNode->keys[i]<=ed&&STNode->keys[i]>=st&&IsPointInPolygon(Point(STNode->ptr2TreeOrData.dataPtr[i].left,STNode->ptr2TreeOrData.dataPtr[i].top),queryPull))
+                        if(IsPointInPolygon(Point(STNode->ptr2TreeOrData.dataPtr[i].left,STNode->ptr2TreeOrData.dataPtr[i].top),queryPull))
                             values.push_back(STNode->ptr2TreeOrData.dataPtr[i]);
                 }
 
                 while(STNode->ptr2next!=EdNode&&STNode!=EdNode){
                     for(int i=0;i<STNode->ptr2next->keys.size();i++){
-                        if(STNode->ptr2next->keys[i]>=st&&STNode->ptr2next->keys[i]<=ed&&IsPointInPolygon(Point(STNode->ptr2TreeOrData.dataPtr[i].left,STNode->ptr2TreeOrData.dataPtr[i].top),queryPull))
+                        if(IsPointInPolygon(Point(STNode->ptr2TreeOrData.dataPtr[i].left,STNode->ptr2TreeOrData.dataPtr[i].top),queryPull))
                             values.push_back(STNode->ptr2next->ptr2TreeOrData.dataPtr[i]);
                     }
                     STNode=STNode->ptr2next;
@@ -426,7 +426,7 @@ private:
                 if(EdNode!= nullptr && STNode!=EdNode){
                     idy = std::upper_bound(EdNode->keys.begin(), EdNode->keys.end(), ed) - EdNode->keys.begin();
                     for(int i=0;i<idy;i++){
-                        if(EdNode->keys[i]<=ed&&EdNode->keys[i]>=st&&IsPointInPolygon(Point(STNode->ptr2TreeOrData.dataPtr[i].left,STNode->ptr2TreeOrData.dataPtr[i].top),queryPull))
+                        if(IsPointInPolygon(Point(STNode->ptr2TreeOrData.dataPtr[i].left,STNode->ptr2TreeOrData.dataPtr[i].top),queryPull))
                             values.push_back(EdNode->ptr2TreeOrData.dataPtr[i]);
                     }
                 }
@@ -470,9 +470,8 @@ private:
                 }
             }
             res_ed=l;
-            l=0,r=node->values.size();
-            int tag=0;
-            while(l<r){
+            l=0,r=node->values.size()-1;
+            while(l<=r){
                 int mid=l+((r-l)>>1);
                 int res_time=node->values[mid]->box.frameIndex;
                 if(res_time < st)
