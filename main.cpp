@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstring>
+#include <unordered_set>
 #include "DetectorState.h"
 #include "JsonHelper.h"
 #include "Box.h"
@@ -88,7 +89,7 @@ int main() {
     //unordered_map<int, vector<DetectorState>> res;
     vector<DetectorState> res;
     //将所有数据存到res中
-   // for(int i=0;i<72;i++)
+ //   for(int i=0;i<2;i++)
         jsonHelper.parseJsonForMiris(res);
     int vec_len = res.size();
     cout<<vec_len<<endl;
@@ -101,23 +102,23 @@ int main() {
     for(int i=0;i<vec_len;i++){
         Nodes node;
         node.box.left = (res[i].left+res[i].right)/2;
-        node.box.top = (res[i].top+res[i].bottom)/2;
+        node.box.top =  (res[i].top+res[i].bottom)/2;
         node.box.width = 0;
         node.box.height = 0;
         node.box.track_id = res[i].track_id;
        // cout<<res[i].track_id<<endl;
         node.box.frameIndex = res[i].frameIndex;
         nodes.push_back(node);
-        max_left=max(max_left,res[i].left);
+      /*  max_left=max(max_left,res[i].left);
         if(res[i].frameIndex==max_frame){
             ressss++;
         }else{
             maxxx=max(maxxx,ressss);
             ressss=0;
             max_frame=res[i].frameIndex;
-        }
+        }*/
     }
-cout<<" 1帧 几辆车 " << maxxx <<endl;
+   // cout<<" 1帧 几辆车 " << maxxx <<endl;
     clock_t startTime,endTime;
 
     startTime = clock();
@@ -157,90 +158,46 @@ cout<<" 1帧 几辆车 " << maxxx <<endl;
     hull_C.push_back(p);
     p = Point(1920.0,630.0);
     hull_C.push_back(p);
+
     startTime = clock();
-    auto values= quadtree.query(hull_A);
-    auto values1= quadtree.query(hull_C);
+
+    /// 二分查找A C路口的车辆
+    auto values= quadtree.query_time(hull_A,0,30999);
+    auto values1= quadtree.query_time(hull_C,0,30999);
+
+
+    quadtree.query_time_pointer(hull_A,hull_C,0,30999);
+
     endTime = clock();
-    unordered_map<int,int> track;
+
+    cout << "The 二分查询某一区域 time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+
     unordered_map<int,int> track_time;
+    unordered_set<int> track_A_C;
+    unordered_set<int> track_C_A;
+
     for(int i=0;i<values.size();i++){
-       // cout<<values[i]->box.track_id<<endl;
-       // if(track[values[i]->box.track_id]!=1)
         track_time[values[i]->box.track_id]=values[i]->box.frameIndex;
-        track[values[i]->box.track_id]=1;
     }
-   // cout<< " A路口： " <<track.size() << " " << track_time.size()<<endl;
-    unordered_map<int,int> track1;
-    unordered_map<int,int> track_time1;
+
     for(int i=0;i<values1.size();i++){
-        //if(track1[values1[i]->box.track_id]!=1)
-        track_time1[values1[i]->box.track_id]=values1[i]->box.frameIndex;
-        track1[values1[i]->box.track_id]=1;
-    }
-    unordered_map<int,pair<double,double>> track_test;
-    for(int i=0;i<values1.size();i++){
-        pair<double,double>pair;
-        pair.first=(values1[i]->box.left+values1[i]->box.getRight())/2.0;
-        pair.second=(values1[i]->box.top+values1[i]->box.getBottom())/2.0;
-        if(track_test[values1[i]->box.track_id].first==0&&track_test[values1[i]->box.track_id].second==0)
-            track_test[values1[i]->box.track_id]=pair;
-    }
-    int cnt=0;
-    for(auto it=track_test.begin();it!=track_test.end();it++){
-        node node;
-        node.x=it->second.first;
-        node.y=it->second.second;
-        vex[cnt++]=node;
-    }
-    int t=cnt;
-    memset(stackk,0,sizeof(stackk));
-    sort(vex,vex+t,cmp1);
-    stackk[0]=vex[0];
-    xx=stackk[0].x;
-    yy=stackk[0].y;
-    sort(vex+1,vex+t,cmp2);//cmp2是更快的，cmp更容易理解
-    stackk[1]=vex[1];//将凸包中的第两个点存入凸包的结构体中
-    int top=1;//最后凸包中拥有点的个数
-    for(int i=2; i<t; i++)
-    {
-        while(i>=1&&cross(stackk[top-1],stackk[top],vex[i])<0)   //对使用极角排序的i>=1有时可以不用，但加上总是好的
-            top--;
-        stackk[++top]=vex[i];                                    //控制<0或<=0可以控制重点，共线的，具体视题目而定。
-    }
-    /*for(int i=1; i<=top; i++)//输出凸包上的点
-        cout<<stackk[i].x<<" "<<stackk[i].y<<" " <<endl;*/
-    double ans= 0 ;
-    for(int i=1;i<top-1;i++){
-        node node1,node2;
-        node1.x=stackk[i].x-stackk[0].x;
-        node1.y=stackk[i].y-stackk[0].y;
-        node2.x=stackk[i+1].x-stackk[0].x;
-        node2.y=stackk[i+1].y-stackk[0].y;
-        ans += Cross(node1,node2);
-    }
-    cout<<ans/580.0/450.0<<endl;
-  //  cout<< " B路口： " <<track1.size()<<"  " << track_time1.size()<<endl;
-    vector<int> track_A_C;
-    vector<int> track_C_A;
-    for(auto it=track1.begin();it!=track1.end();it++){
-        if(track[it->first]){
-            if(track_time[it->first]<track_time1[it->first]){
-                track_A_C.push_back(it->first);
-            }
-            else if(track_time[it->first]>track_time1[it->first]){
-                track_C_A.push_back(it->first);
+        if(track_time[values1[i]->box.track_id]){
+            if(values1[i]->box.frameIndex>track_time[values1[i]->box.track_id]){
+                track_A_C.insert(values1[i]->box.track_id);
+            }else{
+                track_C_A.insert(values1[i]->box.track_id);
             }
         }
     }
-    cout << "The 转弯 time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+
     cout<<"A C 的数量："<<track_A_C.size()<<endl;
-    for(int i=0;i<track_A_C.size();i++){
-       // cout<<" A - C "<< track_A_C[i]<<endl;
+    for(auto it=track_A_C.begin();it!=track_A_C.end();it++){
+        cout<<" A - C "<< *it<<endl;
     }
     cout<<"C A 的数量："<<track_C_A.size()<<endl;
-    for(int i=0;i<track_C_A.size();i++){
-      //  cout<<" C - A "<< track_C_A[i]<<endl;
-    }
+   /*for(auto it=track_C_A.begin();it!=track_C_A.end();it++){
+        cout<<" C - A "<< *it<<endl;
+    }*/
 
     // 查询指定区域内停留的车辆
     vector<Point>hull_S;
@@ -254,13 +211,15 @@ cout<<" 1帧 几辆车 " << maxxx <<endl;
     hull_S.push_back(p);
     auto values_stay= quadtree.query(hull_S);
 
+    quadtree.query_stop_pointer(hull_S,0,30999);
+
     //方法一： 即可转换成在这个区间内出现了多少次
     unordered_map<int,int> track_stay;
     for(int i=0;i<values_stay.size();i++){
         track_stay[values_stay[i]->box.track_id]++;
     }
     for(auto it=track_stay.begin();it!=track_stay.end();it++){
-        //cout<<it->first<<" 出现了几次 ： "<<track_stay[it->first]<<endl;
+       // cout<<it->first<<" 出现了几次 ： "<<track_stay[it->first]<<endl;
     }
 
     //方法二： 进入和离开这个区域的时间帧
@@ -274,7 +233,8 @@ cout<<" 1帧 几辆车 " << maxxx <<endl;
         track_stay_ed[values_stay[i]->box.track_id]=max(track_stay_ed[values_stay[i]->box.track_id],values_stay[i]->box.frameIndex);
     }
     for(auto it=track_stay.begin();it!=track_stay.end();it++){
-        //cout<<it->first<<" 时间差 ："<<track_stay_ed[it->first]-track_stay_st[it->first]<<endl;
+        if(track_stay_ed[it->first]-track_stay_st[it->first]>=45)
+            cout<<it->first<<" 时间差 ："<<track_stay_ed[it->first]-track_stay_st[it->first]<<endl;
     }
 
     // 查询闯红灯的车辆
@@ -296,26 +256,9 @@ cout<<" 1帧 几辆车 " << maxxx <<endl;
     int st,ed;
     st=6291;ed=7321;
     auto values_Red_Y= quadtree.query_time(hull_Red_Y,st,ed);
-    vector<Leaf> values_Red_Y_B;
-    values_Red_Y_B = quadtree.query_time_B(hull_Red_Y,st,ed);
-
-    int sum_B=0;
-    for(int i=0;i<res.size();i++){
-        int left = (res[i].left+res[i].right)/2;
-        int top = (res[i].top+res[i].bottom)/2;
-        if(IsPointInPolygon(Point(left,top),hull_Red_Y)&&res[i].frameIndex<=ed&&res[i].frameIndex>=st){
-            sum_B++;
-        }
-    }
-
-    cout<<values_Red_Y.size()<<" "<< values_Red_Y_B.size() << " " <<sum_B<<endl;
     for(int i=0;i<values_Red_Y.size();i++){
         track_red_y[values_Red_Y[i]->box.track_id]=max(track_red_y[values_Red_Y[i]->box.track_id],values_Red_Y[i]->box.frameIndex);
     }
-
-   /*for(int i=0;i<values_Red_Y_B.size();i++){
-        track_red_y[values_Red_Y_B[i].track_id]=max(track_red_y[values_Red_Y_B[i].track_id],values_Red_Y_B[i].frameIndex);
-    }*/
 
     vector<Point>hull_Red_N;
     p = Point(550.0,525.0);
@@ -326,11 +269,37 @@ cout<<" 1帧 几辆车 " << maxxx <<endl;
     hull_Red_N.push_back(p);
     p = Point(1200.0,420.0);
     hull_Red_N.push_back(p);
-    unordered_map<int,int> track_red_n;
-    auto values_Red_N= quadtree.query_time(hull_Red_N,st,ed);
-    cout<<values_Red_N.size()<<endl;
+   // unordered_map<int,int>track_red_n;
 
+    auto values_Red_N= quadtree.query_time(hull_Red_N,st,ed);
+
+    /* vector<Leaf> values_Red_N_B;
+    values_Red_N_B = quadtree.query_time_B(hull_Red_N,st,ed);
+    for(int i=0;i<values_Red_N_B.size();i++){
+        if(track_red_n[values_Red_N_B[i].track_id]!=0)
+            track_red_n[values_Red_N_B[i].track_id]=min(track_red_n[values_Red_N_B[i].track_id],values_Red_N_B[i].frameIndex);
+        else
+            track_red_n[values_Red_N_B[i].track_id]=values_Red_N_B[i].frameIndex;
+    }
+    for(auto it=track_red_n.begin();it!=track_red_n.end();it++){
+        if(it->second<=ed&&it->second>=st&&track_red_y[it->first]<=ed&&track_red_y[it->first]>=st&&it->second>track_red_y[it->first]){
+            cout<<it->first<<" 闯红灯"<<endl;
+        }
+    }*/
+    unordered_set<int> track_chuang;
     for(int i=0;i<values_Red_N.size();i++){
+        if(track_red_y[values_Red_N[i]->box.track_id]!=0) {
+            /// values_Red_N[i]->box.frameIndex<=ed && values_Red_N[i]->box.frameIndex>=st && track_red_y[values_Red_N[i]->box.track_id]<=ed && track_red_y[values_Red_N[i]->box.track_id]>=st &&
+            if( values_Red_N[i]->box.frameIndex>track_red_y[values_Red_N[i]->box.track_id]){
+                track_chuang.insert(values_Red_N[i]->box.track_id);
+            }
+        }
+    }
+
+    for(auto it=track_chuang.begin();it!=track_chuang.end();it++){
+        cout<< *it<<" 闯红灯"<<endl;
+    }
+  /*  for(int i=0;i<values_Red_N.size();i++){
         if(track_red_n[values_Red_N[i]->box.track_id]!=0)
             track_red_n[values_Red_N[i]->box.track_id]=min(track_red_n[values_Red_N[i]->box.track_id],values_Red_N[i]->box.frameIndex);
         else
@@ -340,7 +309,7 @@ cout<<" 1帧 几辆车 " << maxxx <<endl;
         if(it->second<=ed&&it->second>=st&&track_red_y[it->first]<=ed&&track_red_y[it->first]>=st&&it->second>track_red_y[it->first]){
             cout<<it->first<<" 闯红灯"<<endl;
         }
-    }
+    }*/
 
     endTime = clock();
     cout << "The 闯红灯 time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
