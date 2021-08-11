@@ -310,8 +310,8 @@ cout<<" !!!!!!!!!!!! ";
             }
             cnt++;
         }
-    /*    cout<<answer1_2.size()<<"  2——1 ："<<answer2_1.size()<<endl;
-        for(auto it=answer1_2.begin();it!=answer1_2.end();it++){
+       cout<<answer1_2.size()<<"  2——1 ："<<answer2_1.size()<<endl;
+     /*   for(auto it=answer1_2.begin();it!=answer1_2.end();it++){
             cout<<*it<<endl;
         }*/
     }
