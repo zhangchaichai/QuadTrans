@@ -220,7 +220,7 @@ int main() {
 
     startTime = clock();
 
-    auto values_stay= quadtree.query(hull_S);
+    auto values_stay= quadtree.query_time(hull_S,0,30999);
 
   //  quadtree.query_stop_pointer(hull_S,0,30999);
 
@@ -331,7 +331,12 @@ int main() {
         }
     }*/
 
+    startTime = clock();
+    quadtree.query_time_pointer(hull_Red_Y,hull_Red_N,st,ed);
+
     endTime = clock();
-    cout << "The 闯红灯 time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+
+    cout << "The 堆 查询闯红灯 time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+
     return 0;
 }

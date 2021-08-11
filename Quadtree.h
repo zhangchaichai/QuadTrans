@@ -75,7 +75,8 @@ public:
 
     void query_stop_pointer(vector<Point> hull1 ,int st,int ed) const{
         auto values = std::vector<pair<Node*,pair<int,int>>>();
-        query_pointer(mRoot.get(), mBox, hull1, values, st , ed);
+        auto baohan = std::vector<bool>();
+        query_pointer(mRoot.get(), mBox, hull1, values, st , ed,baohan);
         int len1 = values.size();
         unordered_set<int>answer;
         for(int i=0;i<len1;i++){
@@ -110,7 +111,6 @@ public:
             }
 
         }
-cout<<" !!!!!!!!!!!! ";
         for(auto it=answer.begin();it!=answer.end();it++){
             cout<< *it<<endl;
         }
@@ -118,7 +118,8 @@ cout<<" !!!!!!!!!!!! ";
 
     void query_stop_pointer2(vector<Point> hull1 ,int st,int ed) const{
         auto values = std::vector<pair<Node*,pair<int,int>>>();
-        query_pointer(mRoot.get(), mBox, hull1, values, st , ed);
+        auto baohan = std::vector<bool>();
+        query_pointer(mRoot.get(), mBox, hull1, values, st , ed, baohan);
         int len1 = values.size();
         unordered_set<int>answer;
         int tag=false;
@@ -199,12 +200,14 @@ cout<<" !!!!!!!!!!!! ";
 
     void query_time_pointer(vector<Point> hull1,vector<Point> hull2 ,int st,int ed) const{
         auto values1 = std::vector<pair<Node*,pair<int,int>>>();
-        query_pointer(mRoot.get(), mBox, hull1, values1, st , ed);
+        auto baohan1 = std::vector<bool>();
+        query_pointer(mRoot.get(), mBox, hull1, values1, st , ed ,baohan1);
         auto values2 = std::vector<pair<Node*,pair<int,int>>>();
-        query_pointer(mRoot.get(), mBox, hull2, values2, st , ed);
+        auto baohan2 = std::vector<bool>();
+        query_pointer(mRoot.get(), mBox, hull2, values2, st , ed ,baohan2);
 
         int len1 = values1.size(),len2 = values2.size();
-
+/// 排序有问题
         for(int i=0;i<len1;i++){
             sort(values1[i].first->values.begin()+values1[i].second.first,values1[i].first->values.begin()+values1[i].second.second+1);
         }
@@ -213,107 +216,7 @@ cout<<" !!!!!!!!!!!! ";
             sort(values2[i].first->values.begin()+values2[i].second.first,values2[i].first->values.begin()+values2[i].second.second+1);
         }
 
-        int tag1= false,tag2= false;
-        for(int i=0;i<len1;i++){
-            if(values1[i].second.first<=values1[i].second.second){
-                tag1=true;
-                break;
-            }
-        }
-        for(int i=0;i<len2;i++){
-            if(values2[i].second.first<=values2[i].second.second) {
-                tag2=true;
-                break;
-            }
-        }
-        unordered_set<int>answer1_2,answer2_1;
-        int cnt=0;
-        while(tag1&&tag2){
-            int tmp=0;
-            int min_time,min_carId=0x3f3f3f3f,min_loc;
-            for(int i=0;i<len1;i++){
 
-                if(values1[i].second.first<=values1[i].second.second){
-                    min_time=values1[i].first->values[values1[i].second.first]->box.frameIndex;
-                    min_carId=values1[i].first->values[values1[i].second.first]->box.track_id;
-                    min_loc=i;
-                    tmp=i;
-                    break;
-                }
-            }
-
-            for(int i=tmp+1;i<len1;i++){
-                if(values1[i].second.first<=values1[i].second.second){
-                    if(min_carId>values1[i].first->values[values1[i].second.first]->box.track_id){
-                        min_time=values1[i].first->values[values1[i].second.first]->box.frameIndex;
-                        min_carId=values1[i].first->values[values1[i].second.first]->box.track_id;
-                        min_loc=i;
-                    }
-                }
-            }
-
-            int min_time2,min_carId2=0x3f3f3f3f,min_loc2;
-            for(int i=0;i<len2;i++){
-                if(values2[i].second.first<=values2[i].second.second){
-                    min_time2=values2[i].first->values[values2[i].second.first]->box.frameIndex;
-                    min_carId2=values2[i].first->values[values2[i].second.first]->box.track_id;
-                    min_loc2=i;
-                    tmp=i;
-                    break;
-                }
-            }
-            for(int i=tmp+1;i<len2;i++){
-                if(values2[i].second.first<=values2[i].second.second){
-                    if(min_carId2>values2[i].first->values[values2[i].second.first]->box.track_id){
-                        min_time2=values2[i].first->values[values2[i].second.first]->box.frameIndex;
-                        min_carId2=values2[i].first->values[values2[i].second.first]->box.track_id;
-                        min_loc2=i;
-                    }
-                }
-            }
-
-            if(min_carId==min_carId2){
-                int xx=values1[min_loc].first->values[values1[min_loc].second.first]->box.left;
-                int yy=values1[min_loc].first->values[values1[min_loc].second.first]->box.top;
-                int xx2=values2[min_loc2].first->values[values2[min_loc2].second.first]->box.left;
-                int yy2=values2[min_loc2].first->values[values2[min_loc2].second.first]->box.top;
-                if(!IsPointInPolygon(Point(xx,yy),hull1)){
-                    values1[min_loc].second.first++;
-                }else if(!IsPointInPolygon(Point(xx2,yy2),hull2)){
-                    values2[min_loc2].second.first++;
-                }else{
-                    values1[min_loc].second.first++;
-                    values2[min_loc2].second.first++;
-                    if(min_time<=min_time2)
-                        answer1_2.insert(min_carId2);
-                    else
-                        answer2_1.insert(min_carId);
-                }
-            }else if(min_carId<min_carId2){
-                values1[min_loc].second.first++;
-            }else if(min_carId2<min_carId){
-                values2[min_loc2].second.first++;
-            }
-
-            tag1=false,tag2=false;
-            for(int i=0;i<len1;i++){
-                if(values1[i].second.first<=values1[i].second.second){
-                    tag1=true;
-                    break;
-                }
-            }
-            for(int i=0;i<len2;i++){
-                if(values2[i].second.first<=values2[i].second.second) {
-                    tag2=true;
-                    break;
-                }
-            }
-            cnt++;
-        }
-    /*    cout<<answer1_2.size()<<"  2——1 ："<<answer2_1.size()<<endl;
-        for(auto it=answer1_2.begin();it!=answer1_2.end();it++){
-            cout<<*it<<endl;
-        }*/
     }
 
     std::vector<Leaf> query_time_B(vector<Point> hull,int st,int ed) const{
@@ -373,7 +276,7 @@ cout<<" !!!!!!!!!!!! ";
         }
         return wn!=0;
     }
-    //判断2个凸包是否相交
+    ///判断2个凸包是否相交
     bool ConvexPolygonDisjoint(const vector<Point> ch1, const vector<Point> ch2) const{
         int c1 = ch1.size();
         int c2 = ch2.size();
@@ -386,6 +289,20 @@ cout<<" !!!!!!!!!!!! ";
                 if(SegmentProperIntersection(ch1[i], ch1[(i+1)%c1], ch2[j], ch2[(j+1)%c2])) return true;
         return false;
     }
+
+/// 判断ch1是否被ch2包含
+/// \param ch1 凸包
+/// \param ch2 凸包
+/// \return
+    bool IsConvexInPolygon(const vector<Point> ch1, const vector<Point> ch2) const {
+        int c1 = ch1.size();
+        for(int i = 0 ; i < c1 ; i++){
+            if(!IsPointInPolygon(ch1[i],ch2))
+                return false;
+        }
+        return true;
+    }
+
 
     bool ConvexPolygonDisjoint(const vector<Point> ch1, const Box box) const{
         vector<Point> ch2;
@@ -409,18 +326,24 @@ cout<<" !!!!!!!!!!!! ";
                 if(SegmentProperIntersection(ch1[i], ch1[(i+1)%c1], ch2[j], ch2[(j+1)%c2])) return true;
         return false;
     }
+    struct Node
+    {
+        std::array<std::unique_ptr<Node>, 4> children;
+        std::vector<T> values;// 按照时间排序
+        std::vector<T> values_id;//　按照ｔｒａｃｋ　ＩＤ排序
+        BPTree* bPTree = new BPTree(1000, 1000);
+    };
+
+    static bool compTrackid(const T& value1, const T& value2){
+        return value1->box.track_id < value2->box.track_id;
+    }
 
 private:
 ///阈值
     static constexpr auto Threshold = std::size_t(3);
 ///最大深度
     static constexpr auto MaxDepth = std::size_t(11);
-    struct Node
-    {
-        std::array<std::unique_ptr<Node>, 4> children;
-        std::vector<T> values;
-        BPTree* bPTree = new BPTree(1000, 1000);
-    };
+
     Box mBox;
     std::unique_ptr<Node> mRoot;
     Equal mEqual;
@@ -488,7 +411,7 @@ private:
         else
             return -1;
     }
-
+///　四叉树插入一个节点
     void add(Node* node, std::size_t depth, const Box& box, const T& value)
     {
         assert(node != nullptr);
@@ -501,6 +424,7 @@ private:
                 Leaf leaf(box.left,box.top,box.width,box.height,box.track_id,box.frameIndex);
                 node->bPTree->insert(box.frameIndex,leaf);*/
                 node->values.push_back(value);
+                node->values_id.insert(lower_bound(node->values_id.begin(),node->values_id.end(),value, compTrackid), value);
             }
                 // Otherwise, we split and we try again
             else
@@ -518,6 +442,7 @@ private:
                 // Otherwise, we add the value in the current node
             else{
                 node->values.push_back(value);
+                node->values_id.insert(lower_bound(node->values_id.begin(),node->values_id.end(),value, compTrackid), value);
                 /*Box box = mGetBox(value);
                 Leaf leaf(box.left,box.top,box.width,box.height,box.track_id,box.frameIndex);
                 node->bPTree->insert(box.frameIndex,leaf);*/
@@ -525,7 +450,7 @@ private:
 
         }
     }
-
+/// 四叉树的分裂操作
     void split(Node* node, const Box& box)
     {
         assert(node != nullptr);
@@ -535,24 +460,27 @@ private:
             child = std::make_unique<Node>();
         // Assign values to children
         auto newValues = std::vector<T>(); // New values for this node
-
+        auto newValues_id = std::vector<T>();
         for (const auto& value : node->values)
         {
             auto i = getQuadrant(box, mGetBox(value));
             if (i != -1){
                 node->children[static_cast<std::size_t>(i)]->values.push_back(value);
+                node->children[static_cast<std::size_t>(i)]->values_id.insert(lower_bound(node->children[static_cast<std::size_t>(i)]->values_id.begin(),node->children[static_cast<std::size_t>(i)]->values_id.end(),value, compTrackid), value);
                /* Box box = mGetBox(value);
                 Leaf leaf(box.left,box.top,box.width,box.height,box.track_id,box.frameIndex);
                 node->children[static_cast<std::size_t>(i)]->bPTree->insert(box.frameIndex,leaf);*/
             }
             else{
                 newValues.push_back(value);
+                newValues_id.insert(lower_bound(newValues_id.begin(),newValues_id.end(),value, compTrackid), value);
             }
         }
         node->values = std::move(newValues);
+        node->values_id = std::move(newValues_id);
       //  node->bPTree = nullptr;
     }
-
+/// 遍历整棵树
      void query1(Node* node,int &ans,vector<int> &vec){
         if(!isLeaf(node)){
             for (auto i = std::size_t(0); i < node->children.size(); ++i)
@@ -563,6 +491,8 @@ private:
             vec.push_back(node->values.size());
         }
     }
+
+    ///　仅支持空间查询，且查询区域必须是矩形
     void query(Node* node, const Box& box, const Box& queryBox, std::vector<T>& values) const
     {
         assert(node != nullptr);
@@ -587,7 +517,7 @@ private:
             }
         }
     }
-
+/// 仅支持空间查询　　
     void query(Node* node, const Box& box, vector<Point>& queryPull, std::vector<T>& values) const{
         assert(node != nullptr);
         if (!isLeaf(node))
@@ -608,19 +538,33 @@ private:
                     query(node->children[i].get(), childBox, queryPull, values);
             }
         }else{
+            vector<Point> Box1;
+            Point point = Point(box.left,box.top);
+            Box1.push_back(point);
+            point = Point(box.left,box.getBottom());
+            Box1.push_back(point);
+            point = Point(box.getRight(),box.top);
+            Box1.push_back(point);
+            point = Point(box.getRight(),box.getBottom());
+            Box1.push_back(point);
 
-            for (const auto& value : node->values)
-            {
-
-                Box box = mGetBox(value);
-                Point p = Point(box.left,box.top);
-                if(IsPointInPolygon(p,queryPull)){
+            if(IsConvexInPolygon(Box1,queryPull)){
+                for (const auto& value : node->values)
                     values.push_back(value);
+            }else{
+                for (const auto& value : node->values)
+                {
+                    Box box = mGetBox(value);
+                    Point p = Point(box.left,box.top);
+                    if(IsPointInPolygon(p,queryPull)){
+                        values.push_back(value);
+                    }
                 }
             }
+
         }
     }
-
+///　Ｂ+树查询　　支持时空查询
     void query_BT(Node* node, const Box& box, vector<Point>& queryPull, std::vector<Leaf>& values,int st,int ed) const{
         assert(node != nullptr);
         // cout<< queryPull[2].y << endl;
@@ -645,38 +589,6 @@ private:
             }
         }
         else{
-          /*  if(node->values.size()<len){
-                int res_st=-1,res_ed=-1;
-                int l=0,r=node->values.size()-1;
-                while(l<=r){
-                    int mid=l+((r-l)>>1);
-                    int res_time=node->values[mid]->box.frameIndex;
-                    if(res_time<=ed){
-                        l=mid+1;
-                    }else{
-                        r=mid-1;
-                    }
-                }
-                res_ed=l;
-                l=0,r=node->values.size()-1;
-                while(l<=r){
-                    int mid=l+((r-l)>>1);
-                    int res_time=node->values[mid]->box.frameIndex;
-                    if(res_time < st)
-                        l=mid+1;
-                    else
-                        r=mid-1;
-                }
-                res_st=l;
-                for(int i=res_st;i<res_ed;i++){
-                    Box box = mGetBox(node->values[i]);
-                    Point p = Point(box.left,box.top);
-                    Leaf leaf(node->values[i]->box.left,node->values[i]->box.top,0,0,node->values[i]->box.track_id,node->values[i]->box.frameIndex);
-                    if(IsPointInPolygon(p,queryPull)){
-                        values.push_back(leaf);
-                    }
-                }
-            }else*/
              {
                 BNode* STNode=node->bPTree->search_key(st);
                 BNode* EdNode=node->bPTree->search_key(ed);
@@ -713,7 +625,7 @@ private:
         }
     }
 
-
+///　vector存储　支持时空查询　
     void query(Node* node, const Box& box, vector<Point>& queryPull, std::vector<T>& values ,int st ,int ed) const{
         assert(node != nullptr);
         // cout<< queryPull[2].y << endl;
@@ -737,6 +649,7 @@ private:
                     query(node->children[i].get(), childBox, queryPull, values,st,ed);
             }
         }else{
+            ///　二分查找界限
             int res_st=-1,res_ed=-1;
             int l=0,r=node->values.size()-1;
             while(l<=r){
@@ -759,17 +672,35 @@ private:
                     r=mid-1;
             }
             res_st=l;
-            for(int i=res_st;i<res_ed;i++){
-                Box box = mGetBox(node->values[i]);
-                Point p = Point(box.left,box.top);
-                if(IsPointInPolygon(p,queryPull)){
+
+            vector<Point> Box1;
+            Point point = Point(box.left,box.top);
+            Box1.push_back(point);
+            point = Point(box.left,box.getBottom());
+            Box1.push_back(point);
+            point = Point(box.getRight(),box.top);
+            Box1.push_back(point);
+            point = Point(box.getRight(),box.getBottom());
+            Box1.push_back(point);
+            if(IsConvexInPolygon(Box1,queryPull)){
+                for(int i=res_st;i<res_ed;i++){
                     values.push_back(node->values[i]);
                 }
+            }else{
+                for(int i=res_st;i<res_ed;i++){
+                    Box box = mGetBox(node->values[i]);
+                    Point p = Point(box.left,box.top);
+                    if(IsPointInPolygon(p,queryPull)){
+                        values.push_back(node->values[i]);
+                    }
+                }
             }
+
         }
     }
 
-    void query_pointer(Node* node, const Box& box, vector<Point>& queryPull, std::vector<pair<Node*,pair<int,int>>>& values ,int st ,int ed) const{
+    ///　查找符合空间范围的指针
+    void query_pointer(Node* node, const Box& box, vector<Point>& queryPull, std::vector<pair<Node*,pair<int,int>>>& values ,int st ,int ed , vector<bool> &baohan) const{
         assert(node != nullptr);
         // cout<< queryPull[2].y << endl;
 //        assert(ConvexPolygonDisjoint(ConvexHull(queryPull),ConvexHull(box1)));
@@ -789,7 +720,7 @@ private:
                 point = Point(childBox.left+childBox.width,childBox.top+childBox.height);
                 childBox1.push_back(point);
                 if (ConvexPolygonDisjoint(ConvexHull(queryPull),ConvexHull(childBox1)))
-                    query_pointer(node->children[i].get(), childBox, queryPull, values,st,ed);
+                    query_pointer(node->children[i].get(), childBox, queryPull, values,st,ed,baohan);
             }
         }else{
             int res_st=-1,res_ed=-1;
@@ -814,6 +745,21 @@ private:
                     r=mid-1;
             }
             res_st=l;
+            vector<Point> Box1;
+            Point point = Point(box.left,box.top);
+            Box1.push_back(point);
+            point = Point(box.left,box.getBottom());
+            Box1.push_back(point);
+            point = Point(box.getRight(),box.top);
+            Box1.push_back(point);
+            point = Point(box.getRight(),box.getBottom());
+            Box1.push_back(point);
+            if(IsConvexInPolygon(Box1,queryPull)){
+                baohan.push_back(true);
+            }else{
+                baohan.push_back(false);
+            }
+
             if(res_st<res_ed){
                 pair<Node*,pair<int,int>> pointer;
                 pointer.first=node;
