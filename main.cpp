@@ -134,7 +134,7 @@ int main() {
 
     endTime = clock();
     cout << "The 建树 time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
-    quadtree.bianli();
+ //   quadtree.bianli();
     //A路口
     vector<Point>hull_A;
     Point p = Point(0.0,0.0);
@@ -166,11 +166,7 @@ int main() {
     auto values1= quadtree.query_time(hull_C,0,30999);
 
 
-    quadtree.query_time_pointer(hull_A,hull_C,0,30999);
 
-    endTime = clock();
-
-    cout << "The 二分查询某一区域 time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 
     unordered_map<int,int> track_time;
     unordered_set<int> track_A_C;
@@ -190,9 +186,21 @@ int main() {
         }
     }
 
+    endTime = clock();
+
+    cout << "The 二分查询转弯 time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+
+
+    startTime = clock();
+    quadtree.query_time_pointer(hull_A,hull_C,0,30999);
+
+    endTime = clock();
+
+    cout << "The 堆 查询转弯 time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+
     cout<<"A C 的数量："<<track_A_C.size()<<endl;
     for(auto it=track_A_C.begin();it!=track_A_C.end();it++){
-        cout<<" A - C "<< *it<<endl;
+  //      cout<<" A - C "<< *it<<endl;
     }
     cout<<"C A 的数量："<<track_C_A.size()<<endl;
    /*for(auto it=track_C_A.begin();it!=track_C_A.end();it++){
@@ -209,9 +217,12 @@ int main() {
     hull_S.push_back(p);
     p = Point(676.0*2,207.0*2);
     hull_S.push_back(p);
+
+    startTime = clock();
+
     auto values_stay= quadtree.query(hull_S);
 
-    quadtree.query_stop_pointer(hull_S,0,30999);
+  //  quadtree.query_stop_pointer(hull_S,0,30999);
 
     //方法一： 即可转换成在这个区间内出现了多少次
     unordered_map<int,int> track_stay;
@@ -221,7 +232,12 @@ int main() {
     for(auto it=track_stay.begin();it!=track_stay.end();it++){
        // cout<<it->first<<" 出现了几次 ： "<<track_stay[it->first]<<endl;
     }
-
+    endTime = clock();
+    cout << "The 停留 time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+    startTime = clock();
+    quadtree.query_stop_pointer2(hull_S,0,30999);
+    endTime = clock();
+    cout << "The 滑动窗口 time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
     //方法二： 进入和离开这个区域的时间帧
     unordered_map<int,int> track_stay_st;
     unordered_map<int,int> track_stay_ed;
@@ -232,10 +248,10 @@ int main() {
             track_stay_st[values_stay[i]->box.track_id]=min(track_stay_st[values_stay[i]->box.track_id],values_stay[i]->box.frameIndex);
         track_stay_ed[values_stay[i]->box.track_id]=max(track_stay_ed[values_stay[i]->box.track_id],values_stay[i]->box.frameIndex);
     }
-    for(auto it=track_stay.begin();it!=track_stay.end();it++){
-        if(track_stay_ed[it->first]-track_stay_st[it->first]>=45)
+  /*  for(auto it=track_stay.begin();it!=track_stay.end();it++){
+        if(track_stay_ed[it->first]-track_stay_st[it->first]>=100)
             cout<<it->first<<" 时间差 ："<<track_stay_ed[it->first]-track_stay_st[it->first]<<endl;
-    }
+    }*/
 
     // 查询闯红灯的车辆
     startTime = clock();
@@ -255,6 +271,7 @@ int main() {
     unordered_map<int,int> track_red_y;
     int st,ed;
     st=6291;ed=7321;
+    startTime = clock();
     auto values_Red_Y= quadtree.query_time(hull_Red_Y,st,ed);
     for(int i=0;i<values_Red_Y.size();i++){
         track_red_y[values_Red_Y[i]->box.track_id]=max(track_red_y[values_Red_Y[i]->box.track_id],values_Red_Y[i]->box.frameIndex);
@@ -299,6 +316,9 @@ int main() {
     for(auto it=track_chuang.begin();it!=track_chuang.end();it++){
         cout<< *it<<" 闯红灯"<<endl;
     }
+
+    endTime = clock();
+    cout << "The 闯红灯 time is: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
   /*  for(int i=0;i<values_Red_N.size();i++){
         if(track_red_n[values_Red_N[i]->box.track_id]!=0)
             track_red_n[values_Red_N[i]->box.track_id]=min(track_red_n[values_Red_N[i]->box.track_id],values_Red_N[i]->box.frameIndex);

@@ -92,7 +92,7 @@ public:
                         r=mid-1;
                 }
                 res_st=l;
-                if(res_st >values[i].second.second &&values[i].first->values[res_st]->box.frameIndex<tmp)
+                if(res_st >values[i].second.second || values[i].first->values[res_st]->box.frameIndex<tmp)
                     break;
                 unordered_map<int,int>hash;
                 while(values[i].second.first<=values[i].second.second && values[i].first->values[values[i].second.first]->box.frameIndex==tmp-45){
@@ -105,15 +105,95 @@ public:
                     if(hash[values[i].first->values[j]->box.track_id]==1){
                         answer.insert(values[i].first->values[j]->box.track_id);
                     }
-                  //  cout<<j<<" "<<values[i].second.second<<endl;
                 }
                 hash.clear();
             }
 
         }
-
+cout<<" !!!!!!!!!!!! ";
         for(auto it=answer.begin();it!=answer.end();it++){
             cout<< *it<<endl;
+        }
+    }
+
+    void query_stop_pointer2(vector<Point> hull1 ,int st,int ed) const{
+        auto values = std::vector<pair<Node*,pair<int,int>>>();
+        query_pointer(mRoot.get(), mBox, hull1, values, st , ed);
+        int len1 = values.size();
+        unordered_set<int>answer;
+        int tag=false;
+        for(int i=0;i<len1;i++){
+            if(values[i].second.first<=values[i].second.second && values[i].first->values[values[i].second.first]->box.frameIndex+100<values[i].first->values[values[i].second.second]->box.frameIndex ){
+                tag=true;
+                break;
+            }
+        }
+        while(tag){
+            int tmp=0;
+            int min_time=0x3f3f3f3f,min_loc;
+            for(int i=0;i<len1;i++){
+
+                if(values[i].second.first<=values[i].second.second){
+                    min_time=values[i].first->values[values[i].second.first]->box.frameIndex;
+                    min_loc=i;
+                    tmp=i;
+                    break;
+                }
+            }
+
+            for(int i=tmp+1;i<len1;i++){
+                if(values[i].second.first<=values[i].second.second){
+                    if(min_time>values[i].first->values[values[i].second.first]->box.frameIndex){
+                        min_time=values[i].first->values[values[i].second.first]->box.frameIndex;
+                        min_loc=i;
+                    }
+                }
+            }
+            unordered_map<int,int>hash;
+            for(int i=0;i<len1;i++){
+                while(values[i].second.first<=values[i].second.second && values[i].first->values[values[i].second.first]->box.frameIndex == min_time){
+                    hash[values[i].first->values[values[i].second.first]->box.track_id]=1;
+                    values[i].second.first++;
+                }
+            }
+
+
+            for(int i=0;i<len1;i++){
+                int l=values[i].second.first,r=values[i].second.second;
+                int res_st =l;
+                while(l<=r){
+                    int mid=l+((r-l)>>1);
+                    int res_time=values[i].first->values[mid]->box.frameIndex;
+                    if(res_time < min_time+100)
+                        l=mid+1;
+                    else
+                        r=mid-1;
+                }
+                res_st=l;
+                if(res_st >values[i].second.second || values[i].first->values[res_st]->box.frameIndex<min_time+100){
+                    continue;
+                }
+                for(int j=res_st;j<=values[i].second.second;j++){
+                    if(min_time+100 !=values[i].first->values[j]->box.frameIndex)
+                        break;
+                    if(hash[values[i].first->values[j]->box.track_id]==1){
+                        answer.insert(values[i].first->values[j]->box.track_id);
+                    }
+                }
+
+            }
+            hash.clear();
+            tag=false;
+            for(int i=0;i<len1;i++){
+                if(values[i].second.first<=values[i].second.second && values[i].first->values[values[i].second.second]->box.frameIndex > min_time + 100){
+                    tag=true;
+                    break;
+                }
+            }
+        }
+        cout<<"???????"<<endl;
+        for(auto it = answer.begin();it!=answer.end();it++){
+            cout<<*it<<endl;
         }
     }
 
