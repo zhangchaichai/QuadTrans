@@ -16,6 +16,8 @@
 #include "Point.h"
 #include "B+ tree.h"
 #include <vector>
+#include <queue>
+#include <set>
 const double eps = 1e-10;
 template<typename T,typename GetBox, typename Equal = std::equal_to<T>>
 class Quadtree{
@@ -198,6 +200,9 @@ public:
         }
     }
 
+
+
+
     void query_time_pointer(vector<Point> hull1,vector<Point> hull2 ,int st,int ed) const{
         auto values1 = std::vector<pair<Node*,pair<int,int>>>();
         auto baohan1 = std::vector<bool>();
@@ -208,15 +213,95 @@ public:
 
         int len1 = values1.size(),len2 = values2.size();
 /// 排序有问题
+        priority_queue< cmp_tarckid > que1,que2;
         for(int i=0;i<len1;i++){
-            sort(values1[i].first->values.begin()+values1[i].second.first,values1[i].first->values.begin()+values1[i].second.second+1);
+            sort(values1[i].first->values.begin()+values1[i].second.first,values1[i].first->values.begin()+values1[i].second.second+1,compTrackid);
+            cmp_tarckid tmp;
+            tmp.st = values1[i].second.first;
+            tmp.ed = values1[i].second.second;
+            tmp.node = values1[i].first;
+            que1.push(tmp);
         }
 
         for(int i=0;i<len2;i++){
-            sort(values2[i].first->values.begin()+values2[i].second.first,values2[i].first->values.begin()+values2[i].second.second+1);
+            sort(values2[i].first->values.begin()+values2[i].second.first,values2[i].first->values.begin()+values2[i].second.second+1,compTrackid);
+            cmp_tarckid tmp;
+            tmp.st = values2[i].second.first;
+            tmp.ed = values2[i].second.second;
+            tmp.node = values2[i].first;
+            que2.push(tmp);
         }
 
-
+        set<int> zhuanwanA_C,zhuanwanC_A;
+        while(!que1.empty()&&!que2.empty()){
+            cmp_tarckid now1 = que1.top();
+            cmp_tarckid now2 = que2.top();
+            int is1 = IsPointInPolygon(Point(now1.node->values[now1.st]->box.left,now1.node->values[now1.st]->box.top),hull1);
+            int is2 = IsPointInPolygon(Point(now2.node->values[now2.st]->box.left,now2.node->values[now2.st]->box.top),hull2);
+            if(!is1 && !is2){
+                que1.pop();
+                if(now1.st < now1.ed){
+                    now1.st++;
+                    que1.push(now1);
+                }
+                que2.pop();
+                if(now2.st < now2.ed){
+                    now2.st++;
+                    que2.push(now2);
+                }
+                continue;
+            }else if(!is2){
+                que2.pop();
+                if(now2.st < now2.ed){
+                    now2.st++;
+                    que2.push(now2);
+                }
+                continue;
+            }else if(!is1){
+                que1.pop();
+                if(now1.st < now1.ed){
+                    now1.st++;
+                    que1.push(now1);
+                }
+                continue;
+            }
+            if(now1.node->values[now1.st]->box.track_id < now2.node->values[now2.st]->box.track_id){
+                if(now1.st < now1.ed){
+                    now1.st++;
+                    que1.pop();
+                    que1.push(now1);
+                }else
+                    que1.pop();
+            }else if(now1.node->values[now1.st]->box.track_id > now2.node->values[now2.st]->box.track_id){
+                if(now2.st < now2.ed){
+                    now2.st++;
+                    que2.pop();
+                    que2.push(now2);
+                }else
+                    que2.pop();
+            }else{
+                que1.pop();
+                if(now1.st < now1.ed){
+                    now1.st++;
+                    que1.push(now1);
+                }
+                que2.pop();
+                if(now2.st < now2.ed){
+                    now2.st++;
+                    que2.push(now2);
+                }
+                if(now1.node->values[now1.st]->box.frameIndex < now2.node->values[now2.st]->box.frameIndex)
+                    zhuanwanA_C.insert(now1.node->values[now1.st]->box.track_id);
+                else
+                    zhuanwanC_A.insert(now1.node->values[now1.st]->box.track_id);
+            }
+        }
+        cout<<"-----------------------------------------"<<endl;
+        for(auto it = zhuanwanA_C.begin() ;it!=zhuanwanA_C.end();it++){
+            cout<<*it<<endl;
+        }
+        cout<<"-----------------------------------------"<<endl;
+        cout<<zhuanwanA_C.size()<<" zhuanwan  ::  "<<zhuanwanC_A.size()<<endl;
     }
 
     std::vector<Leaf> query_time_B(vector<Point> hull,int st,int ed) const{
@@ -337,6 +422,20 @@ public:
     static bool compTrackid(const T& value1, const T& value2){
         return value1->box.track_id < value2->box.track_id;
     }
+
+    struct cmp_tarckid{
+        int st;
+        int ed;
+        Node * node;
+        friend bool operator < (const  cmp_tarckid &a, const cmp_tarckid &b)
+        {
+            if( a.node->values[a.st]->box.track_id > b.node->values[b.st]->box.track_id)
+                return true;
+            return false;
+        }
+    };
+
+
 
 private:
 ///阈值
@@ -771,4 +870,5 @@ private:
         }
     }
 };
+
 #endif //QUADTRANS_QUADTREE_H
